@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Validador y Calculadora de Dígito Verificador para RUT</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  textarea, button { margin-top: 10px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+  th { background-color: #f2f2f2; }
+  .valido { color: green; }
+  .invalido { color: red; }
+</style>
+</head>
+<body>
+
+<label for="inputRuts">Ingrese los RUTs (separados por coma o salto de línea):</label>
+<textarea id="inputRuts" rows="10" cols="50"></textarea><br>
+<button onclick="validarRUTs()">Validar RUTs</button>
+<button onclick="calcularDVParaRUTs()">Calcular Dígito Verificador</button>
+
+<table id="tablaResultados">
+  <thead>
+    <tr>
+      <th>RUT</th>
+      <th>Estado</th>
+      <th>Dígito Verificador</th>
+      <th>RUT Completo</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+
+<script>
+function validarRUTs() {
+  const input = document.getElementById("inputRuts").value;
+  const ruts = input.split(/\s*,\s*|\s+/);
+  const tabla = document.getElementById("tablaResultados").getElementsByTagName('tbody')[0];
+  
+  tabla.innerHTML = ''; // Limpiar tabla
+
+  ruts.forEach(rutInput => {
+    let rut = rutInput.replace(/\W/g, ''); // Limpiar el RUT
+    if (rut.length > 1) {
+      const rutSinDV = rut.slice(0, -1);
+      const dvIngresado = rut.slice(-1);
+      const dvCalculado = calcularDV(rutSinDV);
+      const esValido = dvCalculado.toUpperCase() === dvIngresado.toUpperCase();
+      const fila = `<tr>
+                      <td>${rutSinDV}</td>
+                      <td>${esValido ? 'Válido' : 'Inválido'}</td>
+                      <td>${dvCalculado}</td>
+                      <td>${rutSinDV}-${dvIngresado}</td>
+                    </tr>`;
+      tabla.innerHTML += fila;
+    }
+  });
+}
+
+function calcularDVParaRUTs() {
+  const input = document.getElementById("inputRuts").value;
+  const ruts = input.split(/\s*,\s*|\s+/);
+  const tabla = document.getElementById("tablaResultados").getElementsByTagName('tbody')[0];
+  
+  tabla.innerHTML = ''; // Limpiar tabla
+
+  ruts.forEach(rut => {
+    if (rut.trim()) {
+      const dvCalculado = calcularDV(rut);
+      const rutFormateado = `${rut.trim()}-${dvCalculado}`;
+      const fila = `<tr>
+                      <td>${rut.trim()}</td>
+                      <td>N/A</td>
+                      <td>${dvCalculado}</td>
+                      <td>${rutFormateado}</td>
+                    </tr>`;
+      tabla.innerHTML += fila;
+    }
+  });
+}
+
+function calcularDV(rut) {
+  let suma = 0;
+  let multiplo = 2;
+  for (let i = rut.length - 1; i >= 0; i--) {
+    suma += multiplo * parseInt(rut.charAt(i), 10);
+    multiplo = (multiplo < 7) ? multiplo + 1 : 2;
+  }
+  const resto = suma % 11;
+  const dv = 11 - resto;
+  if (dv === 10) return 'K';
+  if (dv === 11) return '0';
+  return dv.toString();
+}
+
+</script>
+</body>
+</html>
